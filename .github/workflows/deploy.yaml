@@ -1,0 +1,45 @@
+name: Deploy Project
+
+on:
+  push:
+    branches:
+      - main  # Запускать деплой только при пушах в ветку main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Использовать Ubuntu как среду для выполнения шагов
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2  # Клонирование репозитория
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'  # Устанавливаем нужную версию Node.js
+
+    - name: Install dependencies
+      run: |
+        npm install  # Устанавливаем зависимости проекта
+
+    - name: Run tests
+      run: |
+        npm run test  # (Необязательно) Запускаем тесты, если необходимо
+
+    - name: Build the project
+      run: |
+        npm run build  # Собираем проект
+
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.SERVER_HOST }}  # Хост вашего сервера
+        username: ${{ secrets.SERVER_USER }}  # Имя пользователя на сервере
+        key: ${{ secrets.SERVER_SSH_KEY }}  # SSH ключ для подключения (секрет)
+        port: 22  # Порт SSH
+        script: |
+          cd /path/to/your/project  # Переходим в директорию на сервере
+          git pull origin main  # Тянем последние изменения из репозитория
+          npm install  # Устанавливаем зависимости на сервере
+          npm run build  # Собираем проект
+          pm2 restart app  # Перезапускаем приложение с использованием PM2 (если нужно)
