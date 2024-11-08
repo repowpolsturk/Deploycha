@@ -1,0 +1,43 @@
+name: Deploy Quiz-Online App
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' 
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test  
+
+      - name: Build project
+        run: npm run build  
+
+      - name: Deploy to Server
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          REMOTE_PATH: ${{ secrets.SERVER_REMOTE_PATH }}
+
+        run: |
+          echo "$SSH_KEY" > private_key
+          chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key $USERNAME@$HOST "mkdir -p $REMOTE_PATH"
+          scp -i private_key -r ./* $USERNAME@$HOST:$REMOTE_PATH
+          ssh -i private_key $USERNAME@$HOST "cd $REMOTE_PATH && npm install --production && pm2 restart all"
+        shell: bash
