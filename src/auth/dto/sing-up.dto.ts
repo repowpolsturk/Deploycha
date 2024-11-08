@@ -18,5 +18,5 @@ export class SignUpDto {
 
   @IsInt()
   @IsNotEmpty()
-  roleId: number;  // Это поле для ID роли
+  roleId: number;
 }

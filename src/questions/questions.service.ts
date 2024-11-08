@@ -1,43 +1,53 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 import { CreateQuestionDto } from './dto/question.dto';
+
 import { Question } from './entity/question.entity';
+import { QuestionService } from 'Deploycha/src/questions/questions.service';
 
-@Injectable()
-export class QuestionService {
-  constructor(
-    @InjectRepository(Question)
-    private questionRepository: Repository<Question>,
-  ) {}
+@ApiTags('Questions')
+@Controller('questions')
+export class QuestionController {
+  constructor(private readonly questionService: QuestionService) {}
 
-  async create(createQuestionDto: CreateQuestionDto): Promise<Question> {
-    const question = this.questionRepository.create(createQuestionDto);
-    return this.questionRepository.save(question);
+  @ApiOperation({ summary: 'Create a new question' })
+  @ApiResponse({ status: 201, description: 'The question has been successfully created.', type: Question })
+  @Post()
+  async create(@Body() createQuestionDto: CreateQuestionDto) {
+    return this.questionService.create(createQuestionDto);
   }
 
-  async findAll(): Promise<Question[]> {
-    return this.questionRepository.find();
+  @ApiOperation({ summary: 'Get all questions' })
+  @ApiResponse({ status: 200, description: 'Return all questions', type: [Question] })
+  @Get()
+  async findAll() {
+    return this.questionService.findAll();
   }
 
-  async findOne(id: number): Promise<Question> {
-    const question = await this.questionRepository.findOne({ where: { id } });
-    if (!question) {
-      throw new NotFoundException(`Question with ID ${id} not found`);
-    }
-    return question;
+  @ApiOperation({ summary: 'Get a question by ID' })
+  @ApiResponse({ status: 200, description: 'Return the question', type: Question })
+  @ApiResponse({ status: 404, description: 'Question not found' })
+  @Get(':id')
+  async findOne(@Param('id') id: number) {
+    return this.questionService.findOne(id);
   }
 
-  async update(id: number, updateQuestionDto: CreateQuestionDto): Promise<Question> {
-    await this.questionRepository.update(id, updateQuestionDto);
-    return this.findOne(id);
+  @ApiOperation({ summary: 'Update a question by ID' })
+  @ApiResponse({ status: 200, description: 'The question has been successfully updated.', type: Question })
+  @ApiResponse({ status: 404, description: 'Question not found' })
+  @Put(':id')
+  async update(@Param('id') id: number, @Body() updateQuestionDto: CreateQuestionDto) {
+    return this.questionService.update(id, updateQuestionDto);
   }
 
-  async remove(id: number): Promise<void> {
-    const question = await this.findOne(id);
-    if (question) {
-      await this.questionRepository.delete(id);
-    }
+  @ApiOperation({ summary: 'Delete a question by ID' })
+  @ApiResponse({ status: 200, description: 'The question has been successfully deleted.' })
+  @ApiResponse({ status: 404, description: 'Question not found' })
+  @Delete(':id')
+  async remove(@Param('id') id: number) {
+    return this.questionService.remove(id);
   }
 }
+export { QuestionService };
+

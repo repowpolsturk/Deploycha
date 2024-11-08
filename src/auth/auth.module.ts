@@ -1,17 +1,16 @@
+// src/auth/auth.module.ts
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
+import { UserModule } from '../users/users.module'; // Теперь UserModule можно импортировать
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UserModule } from '../users/users.module';
+import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    UserModule,
-    PassportModule,
+    UserModule, // Импортируем UserModule
     JwtModule.register({
-      secret: 'your-secret-key', // Замените на свой секретный ключ
+      secret: 'your-secret-key', 
       signOptions: { expiresIn: '1h' },
     }),
   ],

@@ -1,42 +1,57 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+
 import { CreateAnswerDto } from './dto/answer.dto';
-import { Answer } from './entity/answer.entity';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger'; // Импортируем декораторы Swagger
+import { AnswerService } from 'Deploycha/src/answers/answers.service';
 
-@Injectable()
-export class AnswerService {
-  constructor(
-    @InjectRepository(Answer)
-    private answerRepository: Repository<Answer>,
-  ) {}
+@ApiTags('Answers') // Указываем тег для группы эндпоинтов в документации Swagger
+@Controller('answers')
+export class AnswerController {
+  constructor(private readonly answerService: AnswerService) {}
 
-  async create(createAnswerDto: CreateAnswerDto): Promise<Answer> {
-    const answer = this.answerRepository.create(createAnswerDto);
-    return this.answerRepository.save(answer);
+  @Post()
+  @ApiOperation({ summary: 'Create a new answer' }) // Описание операции
+  @ApiBody({ type: CreateAnswerDto }) // Описание тела запроса
+  @ApiResponse({ status: 201, description: 'The answer has been successfully created.' })
+  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  async create(@Body() createAnswerDto: CreateAnswerDto) {
+    return this.answerService.create(createAnswerDto);
   }
 
-  async findAll(): Promise<Answer[]> {
-    return this.answerRepository.find();
+  @Get()
+  @ApiOperation({ summary: 'Get all answers' }) // Описание операции
+  @ApiResponse({ status: 200, description: 'List of all answers' })
+  async findAll() {
+    return this.answerService.findAll();
   }
 
-  async findOne(id: number): Promise<Answer> {
-    const answer = await this.answerRepository.findOne({ where: { id } });
-    if (!answer) {
-      throw new NotFoundException(`Answer with ID ${id} not found`);
-    }
-    return answer;
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a specific answer by ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'The ID of the answer' }) // Описание параметра URL
+  @ApiResponse({ status: 200, description: 'The answer found.' })
+  @ApiResponse({ status: 404, description: 'Answer not found.' })
+  async findOne(@Param('id') id: number) {
+    return this.answerService.findOne(id);
   }
 
-  async update(id: number, updateAnswerDto: CreateAnswerDto): Promise<Answer> {
-    await this.answerRepository.update(id, updateAnswerDto);
-    return this.findOne(id);
+  @Put(':id')
+  @ApiOperation({ summary: 'Update an answer' })
+  @ApiParam({ name: 'id', type: Number, description: 'The ID of the answer to update' })
+  @ApiBody({ type: CreateAnswerDto }) // Описание тела запроса для обновления
+  @ApiResponse({ status: 200, description: 'The answer has been successfully updated.' })
+  @ApiResponse({ status: 400, description: 'Invalid input data.' })
+  async update(@Param('id') id: number, @Body() updateAnswerDto: CreateAnswerDto) {
+    return this.answerService.update(id, updateAnswerDto);
   }
 
-  async remove(id: number): Promise<void> {
-    const answer = await this.findOne(id);
-    if (answer) {
-      await this.answerRepository.delete(id);
-    }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete an answer by ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'The ID of the answer to delete' })
+  @ApiResponse({ status: 200, description: 'The answer has been successfully deleted.' })
+  @ApiResponse({ status: 404, description: 'Answer not found.' })
+  async remove(@Param('id') id: number) {
+    return this.answerService.remove(id);
   }
 }
+export { AnswerService };
+

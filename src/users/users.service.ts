@@ -12,7 +12,7 @@ export class UserService {
   getAllUsers: any;
   getUserById: any;
   signIn: any;
-    validateUserRole: any;
+  validateUserRole: any;
   findById: any;
   create: any;
   findByEmail: any;

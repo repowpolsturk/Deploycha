@@ -13,7 +13,7 @@ import { Result } from './results/entity/result.entity';
 import { Type } from './types/entity/type.entity';
 import { UserModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
-import { UsersRoleModule } from './user_role/user_role.module';
+import { UserRoleModule } from './user_role/user_role.module';
 import { QuizModule } from './quizzes/quizzes.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { QuestionModule } from './questions/questions.module';
@@ -22,6 +22,8 @@ import { ResultsModule } from './results/results.module';
 import { AnswersModule } from './answers/answers.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './cotegory/cotegory.module';
+import { OtpModule } from './otp/otp.module';
+
 
 @Module({
   imports: [
@@ -34,11 +36,11 @@ import { CategoryModule } from './cotegory/cotegory.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('PG_HOST'),
-        port: +configService.get('PG_PORT'),
-        username: configService.get('PG_USERNAME'),
-        password: configService.get('PG_PASSWORD'),
-        database: configService.get('PG_DATABASE'),
+        host: configService.get<string>('DB_HOST'),
+        port: +configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
         entities: [
           User,
           Role,
@@ -51,13 +53,13 @@ import { CategoryModule } from './cotegory/cotegory.module';
           Result,
           Type,
         ],
-        synchronize: false, // Set to true in development if you want TypeORM to sync your database schema
-        logging: false,
+        synchronize: process.env.NODE_ENV === 'development', // Optional: auto-sync in dev
+        logging: process.env.NODE_ENV !== 'production', // Enable logging in dev
       }),
     }),
     UserModule,
     RolesModule,
-    UsersRoleModule,
+    UserRoleModule,
     QuizModule,
     CategoryModule,
     ReviewsModule,
@@ -66,7 +68,7 @@ import { CategoryModule } from './cotegory/cotegory.module';
     ResultsModule,
     TypeModule,
     AuthModule,
-    CategoryModule,
+    OtpModule,
   ],
 })
 export class AppModule {}

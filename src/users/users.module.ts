@@ -1,22 +1,22 @@
-// user.module.ts
+// src/users/users.module.ts
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
 import { UserService } from './users.service';
 import { UserController } from './users.controller';
 import { User } from './entity/user.entity';
-import { Role } from '../roles/entity/role.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Role } from 'src/roles/entity/role.entity';
+import { JwtModule } from '@nestjs/jwt'; // Добавьте JwtModule
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role]),
     JwtModule.register({
-      secret: 'your-secret-key', // Use a strong secret or move it to a configuration file
-      signOptions: { expiresIn: '60m' },
+      secret: 'your-secret-key', // Используйте ваш секретный ключ
+      signOptions: { expiresIn: '1h' }, // Настройка времени жизни токена
     }),
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService],
+  exports: [UserService], // Экспортируем сервис
 })
 export class UserModule {}
