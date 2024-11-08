@@ -1,48 +1,48 @@
 import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { User } from './users/model/user.model';
-import { Role } from './roles/model/role.model';
-import { UsersRole } from './users_role/model/users_role.model';
-import { Quiz } from './quizzes/model/quizzes.model';
-import { Category } from './categories/model/category.model';
-import { Review } from './reviews/model/review.model';
-import { Question } from './questions/model/question.model';
-import { Answer } from './answers/model/answer.model';
-import { Result } from './results/model/result.model';
-import { Type } from './types/model/type.model';
-import { UsersModule } from './users/users.module';
+import { User } from './users/entity/user.entity';
+import { Role } from './roles/entity/role.entity';
+import { UserRole } from './user_role/entity/user_role.entity';
+import { Quiz } from './quizzes/entity/quizzes.entity';
+import { Category } from './cotegory/entities/cotegory.entity';
+import { Review } from './reviews/entity/review.entity';
+import { Question } from './questions/entity/question.entity';
+import { Answer } from './answers/entity/answer.entity';
+import { Result } from './results/entity/result.entity';
+import { Type } from './types/entity/type.entity';
+import { UserModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
-import { UsersRoleModule } from './users_role/users_role.module';
-import { QuizzesModule } from './quizzes/quizzes.module';
-import { CategoriesModule } from './categories/categories.module';
+import { UsersRoleModule } from './user_role/user_role.module';
+import { QuizModule } from './quizzes/quizzes.module';
 import { ReviewsModule } from './reviews/reviews.module';
-import { QuestionsModule } from './questions/questions.module';
-import { TypesModule } from './types/types.module';
+import { QuestionModule } from './questions/questions.module';
+import { TypeModule } from './types/types.module';
 import { ResultsModule } from './results/results.module';
 import { AnswersModule } from './answers/answers.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoryModule } from './cotegory/cotegory.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env', // Make sure to load environment variables from .env file
+      envFilePath: '.env',
     }),
-    SequelizeModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        dialect: 'postgres',
-        host: configService.get('PG_HOST'), // Use PG_HOST from .env
-        port: +configService.get('PG_PORT'), // Use PG_PORT from .env, converted to number
-        username: configService.get('PG_USERNAME'), // Use PG_USERNAME from .env
-        password: configService.get('PG_PASSWORD'), // Use PG_PASSWORD from .env
-        database: configService.get('PG_DATABASE'), // Use PG_DATABASE from .env
-        models: [
+        type: 'postgres',
+        host: configService.get('PG_HOST'),
+        port: +configService.get('PG_PORT'),
+        username: configService.get('PG_USERNAME'),
+        password: configService.get('PG_PASSWORD'),
+        database: configService.get('PG_DATABASE'),
+        entities: [
           User,
           Role,
-          UsersRole,
+          UserRole,
           Quiz,
           Category,
           Review,
@@ -51,22 +51,22 @@ import { AuthModule } from './auth/auth.module';
           Result,
           Type,
         ],
-        autoLoadModels: true, // Automatically loads all models defined in the application
-        synchronize: true, // Synchronize models with the database (use cautiously in production)
-        logging: false, // Set to true for debugging purposes
+        synchronize: false, // Set to true in development if you want TypeORM to sync your database schema
+        logging: false,
       }),
     }),
-    UsersModule,
+    UserModule,
     RolesModule,
     UsersRoleModule,
-    QuizzesModule,
-    CategoriesModule,
+    QuizModule,
+    CategoryModule,
     ReviewsModule,
-    QuestionsModule,
+    QuestionModule,
     AnswersModule,
     ResultsModule,
-    TypesModule,
+    TypeModule,
     AuthModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}

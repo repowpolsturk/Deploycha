@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ResultsService } from '../results/results.service';
-import { ResultsController } from '../results/results.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Result } from '../results/model/result.model';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ResultService } from '../results/results.service';
+import { ResultController } from '../results/results.controller';
+import { Result } from './entity/result.entity';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Result])],
-  controllers: [ResultsController],
-  providers: [ResultsService],
+  imports: [TypeOrmModule.forFeature([Result])], 
+  controllers: [ResultController],  
+  providers: [ResultService],  
 })
 export class ResultsModule {}

@@ -32,14 +32,15 @@ jobs:
 
     - name: Deploy to Server
       uses: appleboy/ssh-action@v0.1.6
+      
       with:
         host: ${{ secrets.SERVER_HOST }}  
         username: ${{ secrets.SERVER_USER }} 
         key: ${{ secrets.SERVER_SSH_KEY }} 
         port: 22  # Порт SSH
         script: |
-          cd /path/to/your/project  # Переходим в директорию на сервере
-          git pull origin main  # Тянем последние изменения из репозитория
-          npm install  # Устанавливаем зависимости на сервере
-          npm run build  # Собираем проект
-          pm2 restart app  # Перезапускаем приложение с использованием PM2 (если нужно)
+          cd /path/to/your/project  
+          git pull origin main  
+          npm install  
+          npm run build  т
+          pm2 startOrRestart dist/main.js --name "Quiz-online"

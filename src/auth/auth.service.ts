@@ -1,45 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
-import { JwtPayload } from './jwt-payload.interface';
+import { User } from '../users/entity/user.entity';
 
 @Injectable()
 export class AuthService {
+  validateLogin: any;
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UserService,
+    private readonly jwtService: JwtService
   ) {}
 
-  // Метод для входа
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findByEmail(loginDto.email);
-    if (!user) {
-      throw new Error('Invalid credentials');
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByEmail(email);
+    if (user && await bcrypt.compare(pass, user.password)) {
+      const { password, ...result } = user;
+      return result;
     }
-
-    const isMatch = await bcrypt.compare(loginDto.password, user.password);
-    if (!isMatch) {
-      throw new Error('Invalid credentials');
-    }
-
-    const payload: JwtPayload = { userId: user.id };
-    const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
+    return null;
   }
 
-  // Метод для регистрации
-  async register(registerDto: RegisterDto) {
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    const newUser = await this.usersService.create({
-      ...registerDto,
-      password: hashedPassword,
-    });
-    
-    const payload: JwtPayload = { userId: newUser.id };
-    const accessToken = this.jwtService.sign(payload);
-    return { accessToken };
+  async login(user: any) {
+    const payload = { email: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+      refresh_token: this.generateRefreshToken(user.id),
+    };
+  }
+
+  async register(user: any) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const newUser = await this.usersService.create({ ...user, password: hashedPassword });
+    const payload = { email: newUser.email, sub: newUser.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+      refresh_token: this.generateRefreshToken(newUser.id),
+    };
+  }
+
+  async logout() {
+    // Вы можете использовать черный список JWT или реализовать логику на уровне клиента
+    return { message: 'Logged out' };
+  }
+
+  generateRefreshToken(userId: number) {
+    const payload = { sub: userId };
+    return this.jwtService.sign(payload, { expiresIn: '7d' });
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      const decoded = this.jwtService.verify(refreshToken);
+      const user = await this.usersService.findById(decoded.sub);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+      const payload = { email: user.email, sub: user.id };
+      return {
+        access_token: this.jwtService.sign(payload),
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 }

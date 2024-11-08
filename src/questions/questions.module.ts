@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { QuestionsService } from '../questions/questions.service';
-import { QuestionsController } from '../questions/questions.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Question } from '../questions/model/question.model';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Question } from './entity/question.entity';
+import { QuestionService } from './questions.service';
+import { QuestionController } from './questions.controller';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Question])],
-  controllers: [QuestionsController],
-  providers: [QuestionsService],
+  imports: [TypeOrmModule.forFeature([Question])],
+  providers: [QuestionService],
+  controllers: [QuestionController],
+  exports: [QuestionService],
 })
-export class QuestionsModule {}
+export class QuestionModule {}

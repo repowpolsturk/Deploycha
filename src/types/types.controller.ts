@@ -1,38 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
-import { TypesService } from './types.service';
-import { CreateTypeDto } from '../types/dto/create-type.dto';
-import { UpdateTypeDto } from '../types/dto/update-type.dto';
-import { Type } from '../types/model/type.model';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+
+import { CreateTypeDto } from './dto/type.dto';
+import { TypeService } from './types.service';
 
 @Controller('types')
-export class TypesController {
-  constructor(private readonly typesService: TypesService) {}
+export class TypeController {
+  constructor(private readonly typeService: TypeService) {}
 
   @Post()
-  async create(@Body() createTypeDto: CreateTypeDto): Promise<Type> {
-    return this.typesService.create(createTypeDto);
+  async create(@Body() createTypeDto: CreateTypeDto) {
+    return this.typeService.create(createTypeDto);
   }
 
   @Get()
-  async findAll(): Promise<Type[]> {
-    return this.typesService.findAll();
+  async findAll() {
+    return this.typeService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<Type> {
-    return this.typesService.findOne(id);
+  async findOne(@Param('id') id: number) {
+    return this.typeService.findOne(id);
   }
 
-  @Patch(':id')
-  async update(
-    @Param('id') id: number,
-    @Body() updateTypeDto: UpdateTypeDto,
-  ): Promise<Type> {
-    return this.typesService.update(id, updateTypeDto);
+  @Put(':id')
+  async update(@Param('id') id: number, @Body() updateTypeDto: CreateTypeDto) {
+    return this.typeService.update(id, updateTypeDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
-    await this.typesService.remove(id);
+  async remove(@Param('id') id: number) {
+    return this.typeService.remove(id);
   }
 }

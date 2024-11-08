@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ReviewsService } from '../reviews/reviews.service';
-import { CreateReviewDto } from '../reviews/dto/create-review.dto';
-import { UpdateReviewDto } from '../reviews/dto/update-review.dto';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+
+import { CreateReviewDto } from './dto/review.dto';
+import { ReviewService } from './reviews.service';
 
 @Controller('reviews')
-export class ReviewsController {
-  constructor(private readonly reviewsService: ReviewsService) {}
+export class ReviewController {
+  constructor(private readonly reviewService: ReviewService) {}
 
   @Post()
-  create(@Body() createReviewDto: CreateReviewDto) {
-    return this.reviewsService.create(createReviewDto);
+  async create(@Body() createReviewDto: CreateReviewDto) {
+    return this.reviewService.create(createReviewDto);
   }
 
   @Get()
-  findAll() {
-    return this.reviewsService.findAll();
+  async findAll() {
+    return this.reviewService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.reviewsService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return this.reviewService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto) {
-    return this.reviewsService.update(+id, updateReviewDto);
+  @Put(':id')
+  async update(@Param('id') id: number, @Body() updateReviewDto: CreateReviewDto) {
+    return this.reviewService.update(id, updateReviewDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reviewsService.remove(+id);
+  async remove(@Param('id') id: number) {
+    return this.reviewService.remove(id);
   }
 }

@@ -1,39 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Type } from '../types/model/type.model';
-import { CreateTypeDto } from '../types/dto/create-type.dto';
-import { UpdateTypeDto } from '../types/dto/update-type.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreateTypeDto } from './dto/type.dto';
+import { Type } from './entity/type.entity';
 
 @Injectable()
-export class TypesService {
+export class TypeService {
   constructor(
-    @InjectModel(Type)
-    private typeModel: typeof Type,
+    @InjectRepository(Type)
+    private typeRepository: Repository<Type>,
   ) {}
 
   async create(createTypeDto: CreateTypeDto): Promise<Type> {
-    return this.typeModel.create(createTypeDto);
+    const type = this.typeRepository.create(createTypeDto);
+    return this.typeRepository.save(type);
   }
 
   async findAll(): Promise<Type[]> {
-    return this.typeModel.findAll();
+    return this.typeRepository.find();
   }
 
   async findOne(id: number): Promise<Type> {
-    const type = await this.typeModel.findByPk(id);
+    const type = await this.typeRepository.findOne({ where: { id } });
     if (!type) {
-      throw new NotFoundException('Type not found');
+      throw new NotFoundException(`Type with ID ${id} not found`);
     }
     return type;
   }
 
-  async update(id: number, updateTypeDto: UpdateTypeDto): Promise<Type> {
-    const type = await this.findOne(id);
-    return type.update(updateTypeDto);
+  async update(id: number, updateTypeDto: CreateTypeDto): Promise<Type> {
+    await this.typeRepository.update(id, updateTypeDto);
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
     const type = await this.findOne(id);
-    await type.destroy();
+    if (type) {
+      await this.typeRepository.delete(id);
+    }
   }
 }

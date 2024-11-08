@@ -1,39 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Question } from '../questions/model/question.model';
-import { CreateQuestionDto } from '../questions/dto/create-question.dto';
-import { UpdateQuestionDto } from '../questions/dto/update-question.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreateQuestionDto } from './dto/question.dto';
+import { Question } from './entity/question.entity';
 
 @Injectable()
-export class QuestionsService {
+export class QuestionService {
   constructor(
-    @InjectModel(Question)
-    private questionModel: typeof Question,
+    @InjectRepository(Question)
+    private questionRepository: Repository<Question>,
   ) {}
 
   async create(createQuestionDto: CreateQuestionDto): Promise<Question> {
-    return this.questionModel.create(createQuestionDto);
+    const question = this.questionRepository.create(createQuestionDto);
+    return this.questionRepository.save(question);
   }
 
   async findAll(): Promise<Question[]> {
-    return this.questionModel.findAll();
+    return this.questionRepository.find();
   }
 
   async findOne(id: number): Promise<Question> {
-    const question = await this.questionModel.findByPk(id);
+    const question = await this.questionRepository.findOne({ where: { id } });
     if (!question) {
-      throw new NotFoundException('Question not found');
+      throw new NotFoundException(`Question with ID ${id} not found`);
     }
     return question;
   }
 
-  async update(id: number, updateQuestionDto: UpdateQuestionDto): Promise<Question> {
-    const question = await this.findOne(id);
-    return question.update(updateQuestionDto);
+  async update(id: number, updateQuestionDto: CreateQuestionDto): Promise<Question> {
+    await this.questionRepository.update(id, updateQuestionDto);
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
     const question = await this.findOne(id);
-    await question.destroy();
+    if (question) {
+      await this.questionRepository.delete(id);
+    }
   }
 }

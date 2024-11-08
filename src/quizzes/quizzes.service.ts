@@ -1,39 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Quiz } from '../quizzes/model/quizzes.model';
-import { CreateQuizDto } from '../quizzes/dto/create-quiz.dto';
-import { UpdateQuizDto } from '../quizzes/dto/update-quiz.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreateQuizDto } from './dto/quiz.dto';
+import { Quiz } from './entity/quizzes.entity';
 
 @Injectable()
-export class QuizzesService {
+export class QuizService {
   constructor(
-    @InjectModel(Quiz)
-    private quizModel: typeof Quiz,
+    @InjectRepository(Quiz)
+    private quizRepository: Repository<Quiz>,
   ) {}
 
   async create(createQuizDto: CreateQuizDto): Promise<Quiz> {
-    return this.quizModel.create(createQuizDto);
+    const quiz = this.quizRepository.create(createQuizDto);
+    return this.quizRepository.save(quiz);
   }
 
   async findAll(): Promise<Quiz[]> {
-    return this.quizModel.findAll();
+    return this.quizRepository.find();
   }
 
   async findOne(id: number): Promise<Quiz> {
-    const quiz = await this.quizModel.findByPk(id);
+    const quiz = await this.quizRepository.findOne({ where: { id } });
     if (!quiz) {
-      throw new NotFoundException('Quiz not found');
+      throw new NotFoundException(`Quiz with ID ${id} not found`);
     }
     return quiz;
   }
 
-  async update(id: number, updateQuizDto: UpdateQuizDto): Promise<Quiz> {
-    const quiz = await this.findOne(id);
-    return quiz.update(updateQuizDto);
+  async update(id: number, updateQuizDto: CreateQuizDto): Promise<Quiz> {
+    await this.quizRepository.update(id, updateQuizDto);
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
     const quiz = await this.findOne(id);
-    await quiz.destroy();
+    if (quiz) {
+      await this.quizRepository.delete(id);
+    }
   }
 }

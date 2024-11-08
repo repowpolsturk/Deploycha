@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ReviewsService } from '../reviews/reviews.service';
-import { ReviewsController } from '../reviews/reviews.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Review } from '../reviews/model/review.model';
+import { ReviewService } from '../reviews/reviews.service';
+import { ReviewController } from '../reviews/reviews.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Review } from './entity/review.entity';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Review])],
-  controllers: [ReviewsController],
-  providers: [ReviewsService],
+  imports: [TypeOrmModule.forFeature([Review])],
+  controllers: [ReviewController],
+  providers: [ReviewService],
 })
 export class ReviewsModule {}
