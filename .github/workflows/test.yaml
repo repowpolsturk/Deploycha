@@ -3,41 +3,41 @@ name: Deploy Quiz-Online App
 on:
   push:
     branches:
-      - main  
+      - main  # триггер срабатывает на пуш в main ветку
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' 
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install
 
+      - name: Check for test files
+        id: check_tests
+        run: |
+          if ! ls **/*.spec.ts **/*.test.ts 1> /dev/null 2>&1; then
+            echo "No tests found, skipping test step"
+            echo "::set-output name=tests_found::false"
+          else
+            echo "::set-output name=tests_found::true"
+          fi
+
       - name: Run tests
-        run: npm test  
+        if: steps.check_tests.outputs.tests_found == 'true'
+        run: npm run test
 
       - name: Build project
-        run: npm run build  
+        run: npm run build
 
-      - name: Deploy to Server
-        env:
-          HOST: ${{ secrets.SERVER_HOST }}
-          USERNAME: ${{ secrets.SERVER_USERNAME }}
-          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          REMOTE_PATH: ${{ secrets.SERVER_REMOTE_PATH }}
-
+      - name: Deploy to production
         run: |
-          echo "$SSH_KEY" > private_key
-          chmod 600 private_key
-          ssh -o StrictHostKeyChecking=no -i private_key $USERNAME@$HOST "mkdir -p $REMOTE_PATH"
-          scp -i private_key -r ./* $USERNAME@$HOST:$REMOTE_PATH
-          ssh -i private_key $USERNAME@$HOST "cd $REMOTE_PATH && npm install --production && pm2 restart all"
-        shell: bash
+          # Команды для деплоя
